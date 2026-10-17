@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "files": [
+    "src/main.tsx",
+    "src/App.tsx",
+    "src/lib/blueprint/floorplan-cad-extractor.ts",
+    "src/lib/compliance/ada-accessibility-engine.ts",
+    "src/lib/egress/nfpa101-egress-pathfinder.ts",
+    "src/lib/nebius/nebius-nemotron-vl-supervisor.ts",
+    "src/test/blueprintsight-verification.test.ts"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "blueprintsight-vl",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "BlueprintSight VL: Nemotron Vision-Language Architectural Floorplan, 2010 ADA Accessibility & NFPA 101 Fire-Code Egress Inspector on Nebius AI Studio & NVIDIA NIM",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5185 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5185 --strictPort",
+    "test": "node --experimental-strip-types src/test/blueprintsight-verification.test.ts",
+    "check": "tsc --noEmit && npm test"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.9"
+  }
+}
