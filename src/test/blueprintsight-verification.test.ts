@@ -106,6 +106,12 @@ async function runVerificationSuite(): Promise<void> {
   assert.equal(indReport.isPermitReady, true);
   assert.equal(indReport.overallPermitStatus, 'MUNICIPAL_PERMIT_READY');
   assert.equal(indReport.agentTraces.length, 4);
+  assert.equal(
+    indReport.nebiusTokenFactoryRequest.endpointUrl,
+    'https://api.tokenfactory.us-central1.nebius.com/v1/chat/completions'
+  );
+  assert.equal(indReport.nebiusTokenFactoryRequest.response_format.json_schema.strict, true);
+  assert.ok(indReport.ifcJsonComplianceExport.includes('"schemaIdentifier": "IFC4X3_ADD2"'));
 
   // Verify 4.5s circuit breaker fallback on simulated Nebius cloud failure
   const fallbackReport = await runBlueprintSightSupervisor(medCase, {
@@ -142,7 +148,7 @@ async function runVerificationSuite(): Promise<void> {
     () => createArchitectSealAttestation(indReport, 'Bad License', 'INVALID-123'),
     /INVALID_ARCHITECT_LICENSE_FORMAT/
   );
-  console.log('✅ Gate 4 PASSED: Nebius x NVIDIA NIM Supervisor, Circuit Breaker & AIA/PE Seal Lock');
+  console.log('✅ Gate 4 PASSED: Nebius Token Factory x NVIDIA NIM Supervisor, IFC-JSON 4.3, & AIA/PE Seal Lock');
 
   // ---------------------------------------------------------------------------
   // GATE 5: Port 5185 Strict Isolation Check

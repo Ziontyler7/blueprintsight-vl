@@ -32,6 +32,9 @@ export function App() {
   const [licenseNumber, setLicenseNumber] = useState<string>('AIA-304918');
   const [attestation, setAttestation] = useState<ArchitectSealAttestation | null>(null);
   const [attestationError, setAttestationError] = useState<string | null>(null);
+  const [activeCadTab, setActiveCadTab] = useState<
+    'dxf-redlines' | 'ifc-json' | 'nebius-payload'
+  >('dxf-redlines');
 
   useEffect(() => {
     const nextBase = getBlueprintCaseById(selectedBlueprintId);
@@ -595,26 +598,61 @@ export function App() {
         <div className="panel">
           <div className="panel-header">
             <h2 className="panel-title">
-              AutoCAD / Revit DXF Redline Script &amp; Licensed AIA/PE Stamp Lock
+              AutoCAD DXF Redlines · IFC-JSON 4.3 · Nebius Token Factory &amp; AIA/PE Seal
             </h2>
             <span className="badge badge-nebius">
-              {report.cadRedlineCommands.length} DXF Macros
+              {report.cadRedlineCommands.length} DXF Macros · IFC4X3_ADD2
             </span>
           </div>
 
-          {report.cadRedlineCommands.length === 0 ? (
-            <div className="code-box" style={{ color: '#6ee7b7' }}>
-              // All 2010 ADA &amp; NFPA 101 geometric checks passed. Ready for Licensed Architect AIA/PE Municipal Seal.
-            </div>
-          ) : (
-            report.cadRedlineCommands.map((cmd) => (
-              <div key={cmd.commandId} style={{ marginBottom: '10px' }}>
-                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fca5a5' }}>
-                  [{cmd.dxfLayer}] {cmd.codeReference} — Zone {cmd.targetZoneId}
-                </div>
-                <div className="code-box">{cmd.dxfMacroSnippet}</div>
+          <div className="btn-row" style={{ marginTop: 0, marginBottom: '10px' }}>
+            <button
+              type="button"
+              className={`btn ${activeCadTab === 'dxf-redlines' ? 'btn-nvidia' : ''}`}
+              onClick={() => setActiveCadTab('dxf-redlines')}
+            >
+              AutoCAD DXF Macros ({report.cadRedlineCommands.length})
+            </button>
+            <button
+              type="button"
+              className={`btn ${activeCadTab === 'ifc-json' ? 'btn-nvidia' : ''}`}
+              onClick={() => setActiveCadTab('ifc-json')}
+            >
+              IFC-JSON 4.3 Export
+            </button>
+            <button
+              type="button"
+              className={`btn ${activeCadTab === 'nebius-payload' ? 'btn-nvidia' : ''}`}
+              onClick={() => setActiveCadTab('nebius-payload')}
+            >
+              Nebius Token Factory Payload
+            </button>
+          </div>
+
+          {activeCadTab === 'dxf-redlines' &&
+            (report.cadRedlineCommands.length === 0 ? (
+              <div className="code-box" style={{ color: '#6ee7b7' }}>
+                // All 2010 ADA &amp; NFPA 101 geometric checks passed. Ready for Licensed Architect AIA/PE Municipal Seal.
               </div>
-            ))
+            ) : (
+              report.cadRedlineCommands.map((cmd) => (
+                <div key={cmd.commandId} style={{ marginBottom: '10px' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fca5a5' }}>
+                    [{cmd.dxfLayer}] {cmd.codeReference} — Zone {cmd.targetZoneId}
+                  </div>
+                  <div className="code-box">{cmd.dxfMacroSnippet}</div>
+                </div>
+              ))
+            ))}
+
+          {activeCadTab === 'ifc-json' && (
+            <div className="code-box">{report.ifcJsonComplianceExport}</div>
+          )}
+
+          {activeCadTab === 'nebius-payload' && (
+            <div className="code-box">
+              {JSON.stringify(report.nebiusTokenFactoryRequest, null, 2)}
+            </div>
           )}
 
           <div

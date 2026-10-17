@@ -51,6 +51,25 @@ export interface ArchitectSealAttestation {
   signatureValid: boolean;
 }
 
+export const NEBIUS_TOKEN_FACTORY_BASE_URL =
+  'https://api.tokenfactory.us-central1.nebius.com/v1/chat/completions';
+
+export interface NebiusTokenFactoryRequestPayload {
+  endpointUrl: string;
+  model: string;
+  temperature: number;
+  max_tokens: number;
+  response_format: {
+    type: 'json_schema';
+    json_schema: {
+      name: 'blueprint_ada_nfpa101_compliance_schema';
+      strict: true;
+      schema: Record<string, unknown>;
+    };
+  };
+  messages: Array<{ role: 'system' | 'user'; content: string }>;
+}
+
 export interface BlueprintSightSupervisorReport {
   blueprint: BlueprintFloorplanCase;
   scrubbedMetadata: ScrubbedTitleBlockResult;
@@ -61,6 +80,8 @@ export interface BlueprintSightSupervisorReport {
   isPermitReady: boolean;
   totalViolationsCount: number;
   cadRedlineCommands: CadDxfRedlineCommand[];
+  nebiusTokenFactoryRequest: NebiusTokenFactoryRequestPayload;
+  ifcJsonComplianceExport: string;
   agentTraces: NebiusNimStageTrace[];
   executionMode: 'LOCAL_DETERMINISTIC_NIM' | 'NEBIUS_CLOUD_STUDIO';
   fallbackTriggered: boolean;
@@ -86,6 +107,95 @@ export function computeFnv1aHex(payload: string): string {
     hash = Math.imul(hash, 0x01000193);
   }
   return `FNV1A-${(hash >>> 0).toString(16).toUpperCase().padStart(8, '0')}`;
+}
+
+export function buildNebiusTokenFactoryPayload(
+  blueprint: BlueprintFloorplanCase,
+  scrubbedMetadata: ScrubbedTitleBlockResult,
+  endpointUrl = NEBIUS_TOKEN_FACTORY_BASE_URL
+): NebiusTokenFactoryRequestPayload {
+  return {
+    endpointUrl,
+    model: 'nvidia/Llama-3.1-Nemotron-70B-Instruct',
+    temperature: 0.0,
+    max_tokens: 256,
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'blueprint_ada_nfpa101_compliance_schema',
+        strict: true,
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          required: [
+            'blueprintId',
+            'ada2010Compliant',
+            'nfpa101Compliant',
+            'minTurningCircleIn',
+            'minDoorClearWidthIn',
+            'maxExitTravelDistanceFt',
+          ],
+          properties: {
+            blueprintId: { type: 'string' },
+            ada2010Compliant: { type: 'boolean' },
+            nfpa101Compliant: { type: 'boolean' },
+            minTurningCircleIn: { type: 'number' },
+            minDoorClearWidthIn: { type: 'number' },
+            maxExitTravelDistanceFt: { type: 'number' },
+          },
+        },
+      },
+    },
+    messages: [
+      {
+        role: 'system',
+        content:
+          'You are BlueprintSight VL running on Nebius Token Factory (H100 SXM5) with NVIDIA Nemotron. Audit the scrubbed CAD geometry against 2010 ADA Standards (§304.3.1 60" turning circle, §404.2.3 32" door clear opening) and NFPA 101 Life Safety Code (§7.6 exit travel distance).',
+      },
+      {
+        role: 'user',
+        content: `${scrubbedMetadata.scrubbedText}\nSheet=${blueprint.sheetNumber} | TurningCircle=${blueprint.minTurningCircleDiameterIn}" | DoorClear=${blueprint.minDoorClearWidthIn}" | Corridor=${blueprint.primaryCorridorWidthIn}" | Travel=${blueprint.maxExitTravelDistanceFt}ft`,
+      },
+    ],
+  };
+}
+
+export function buildIfcJsonComplianceExport(
+  blueprint: BlueprintFloorplanCase,
+  adaResult: AdaEvaluationResult,
+  nfpaResult: Nfpa101EgressAuditResult
+): string {
+  const ifcPayload = {
+    type: 'IFC.JSON',
+    version: '4.3.2.0',
+    schemaIdentifier: 'IFC4X3_ADD2',
+    originatingSystem: 'BlueprintSight VL (Nebius Token Factory x NVIDIA NIM)',
+    projectId: blueprint.blueprintId,
+    sheetNumber: blueprint.sheetNumber,
+    buildingEnvelope: {
+      occupancyClassification: blueprint.occupancyGroup,
+      grossAreaSqFt: blueprint.grossAreaSqFt,
+      totalOccupantLoad: blueprint.totalOccupantLoad,
+      nfpa13Sprinklered: blueprint.isNfpa13Sprinklered,
+    },
+    propertySets: {
+      Pset_Ada2010Accessibility: {
+        verdict: adaResult.verdict,
+        complianceScorePct: adaResult.adaComplianceScorePct,
+        minTurningSpaceDiameterIn: blueprint.minTurningCircleDiameterIn,
+        minDoorClearOpeningIn: blueprint.minDoorClearWidthIn,
+        primaryCorridorClearWidthIn: blueprint.primaryCorridorWidthIn,
+      },
+      Pset_Nfpa101LifeSafetyEgress: {
+        verdict: nfpaResult.verdict,
+        egressSafetyScorePct: nfpaResult.egressSafetyScorePct,
+        maxExitTravelDistanceFt: blueprint.maxExitTravelDistanceFt,
+        statutoryMaxExitTravelFt: nfpaResult.statutoryLimits.maxExitTravelDistanceFt,
+        maxCommonPathOfTravelFt: blueprint.maxCommonPathOfTravelFt,
+      },
+    },
+  };
+  return JSON.stringify(ifcPayload, null, 2);
 }
 
 export function buildCadDxfRedlineCommands(
@@ -141,6 +251,17 @@ export async function runBlueprintSightSupervisor(
   const adaResult = evaluateAdaCompliance(activeBlueprint);
   const nfpaResult = auditNfpa101Egress(activeBlueprint);
   const cadRedlineCommands = buildCadDxfRedlineCommands(activeBlueprint, adaResult, nfpaResult);
+  const endpointUrl = options.nebiusEndpointUrl ?? NEBIUS_TOKEN_FACTORY_BASE_URL;
+  const nebiusTokenFactoryRequest = buildNebiusTokenFactoryPayload(
+    activeBlueprint,
+    scrubbedMetadata,
+    endpointUrl
+  );
+  const ifcJsonComplianceExport = buildIfcJsonComplianceExport(
+    activeBlueprint,
+    adaResult,
+    nfpaResult
+  );
 
   const totalViolationsCount =
     adaResult.blockingViolations.length + nfpaResult.blockingViolations.length;
@@ -169,27 +290,17 @@ export async function runBlueprintSightSupervisor(
       if (!options.nebiusApiKey || options.nebiusApiKey.trim().length < 8) {
         throw new Error('NEBIUS_API_KEY_MISSING_OR_INVALID');
       }
-      const endpoint =
-        options.nebiusEndpointUrl ?? 'https://api.studio.nebius.ai/v1/chat/completions';
-      const response = await fetchFn(endpoint, {
+      const response = await fetchFn(endpointUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${options.nebiusApiKey}`,
         },
         body: JSON.stringify({
-          model: 'nvidia/Llama-3.1-Nemotron-70B-Instruct',
-          messages: [
-            {
-              role: 'system',
-              content: 'Analyze scrubbed CAD geometry for ADA 2010 and NFPA 101 compliance.',
-            },
-            {
-              role: 'user',
-              content: scrubbedMetadata.scrubbedText,
-            },
-          ],
-          max_tokens: 128,
+          model: nebiusTokenFactoryRequest.model,
+          messages: nebiusTokenFactoryRequest.messages,
+          response_format: nebiusTokenFactoryRequest.response_format,
+          max_tokens: nebiusTokenFactoryRequest.max_tokens,
         }),
         signal: controller.signal,
       });
@@ -198,7 +309,7 @@ export async function runBlueprintSightSupervisor(
         throw new Error(`NEBIUS_HTTP_${response.status}`);
       }
       executionMode = 'NEBIUS_CLOUD_STUDIO';
-      cloudSummaryNote = ' [Verified via Nebius AI Studio H100 Cluster]';
+      cloudSummaryNote = ' [Verified via Nebius Token Factory H100 Cluster]';
     } catch (err) {
       fallbackTriggered = true;
       executionMode = 'LOCAL_DETERMINISTIC_NIM';
@@ -266,6 +377,8 @@ export async function runBlueprintSightSupervisor(
     isPermitReady,
     totalViolationsCount,
     cadRedlineCommands,
+    nebiusTokenFactoryRequest,
+    ifcJsonComplianceExport,
     agentTraces,
     executionMode,
     fallbackTriggered,
