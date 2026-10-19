@@ -284,11 +284,10 @@ export function App() {
                       x={zone.bbox.x + 10}
                       y={zone.bbox.y + 36}
                       fill="#94a3b8"
-                      fontSize="10"
+                      fontSize="9"
                       fontFamily="monospace"
                     >
-                      Occ: {zone.occupantLoad} | Door: {zone.minDoorClearWidthIn.toFixed(1)}&quot; | Travel:{' '}
-                      {zone.remotePointToExitFt.toFixed(0)}ft
+                      Occ:{zone.occupantLoad} · Door:{zone.minDoorClearWidthIn.toFixed(0)}&quot; · Exit:{zone.remotePointToExitFt.toFixed(0)}ft
                     </text>
 
                     {/* 60-Inch Wheelchair Turning Circle Indicator */}

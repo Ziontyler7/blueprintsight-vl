@@ -32,3 +32,8 @@ npm run build
 # 3. Launch Interactive CAD Blueprint Inspector on Port 5185
 npm run dev
 ```
+
+## ⚡ Nebius Token Factory (`strict: true` JSON Schema) & buildingSMART `IFC.JSON` (`IFC4X3_ADD2`)
+
+- **Nebius Token Factory Integration (`buildNebiusTokenFactoryPayload`)**: Targets `https://api.tokenfactory.us-central1.nebius.com/v1/chat/completions` with `nvidia/Llama-3.1-Nemotron-70B-Instruct` and enforced `response_format: { type: "json_schema", json_schema: { strict: true } }`.
+- **buildingSMART `IFC.JSON` (`4.3.2.0` / `IFC4X3_ADD2`) Exporter (`buildIfcJsonComplianceExport`)**: Exports BIM-ready `IfcProject` and `IfcSpace` entities annotated with `Pset_Ada2010Accessibility` and `Pset_Nfpa101LifeSafetyEgress` alongside AutoCAD `.scr` DXF redline macros.

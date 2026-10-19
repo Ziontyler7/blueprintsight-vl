@@ -6,3 +6,5 @@
 - [x] **Gate 4 (`nebius-nemotron-vl-supervisor.ts`)**: 4-stage Nebius AI Studio + NVIDIA NIM (`NVLM-1.0-72B` + `Llama-3.1-Nemotron-70B-Instruct`) pipeline, `4.5s` `AbortController` circuit breaker fallback, AutoCAD DXF redline generator, and AIA/PE license attestation lock verified.
 - [x] **Gate 5 (`vite.config.ts`)**: Isolated workstation port `127.0.0.1:5185` (`strictPort: true`) verified.
 - [x] **Gate 6 (`Clean-Room Audit`)**: Zero internal trade-secret or unrelated project terminology across all 16 audited repository files.
+
+- [x] **Nebius Token Factory (`api.tokenfactory.us-central1.nebius.com`) & buildingSMART `IFC.JSON` (`IFC4X3_ADD2`)**: Verified in Gate 4 and interactive export tabs (`AutoCAD DXF Macros`, `IFC-JSON 4.3 Export`, `Nebius Token Factory Payload`).
