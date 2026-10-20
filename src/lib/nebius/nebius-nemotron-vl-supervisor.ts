@@ -116,7 +116,7 @@ export function buildNebiusTokenFactoryPayload(
 ): NebiusTokenFactoryRequestPayload {
   return {
     endpointUrl,
-    model: 'nvidia/Llama-3.1-Nemotron-70B-Instruct',
+    model: 'nvidia/nemotron-3.5-super-vl-120b-a12b',
     temperature: 0.0,
     max_tokens: 256,
     response_format: {
@@ -328,17 +328,17 @@ export async function runBlueprintSightSupervisor(
   const agentTraces: NebiusNimStageTrace[] = [
     {
       stageOrder: 1,
-      agentName: 'Stage 1: NeMo Retriever VLM & NVLM-1.0-72B Vector Extractor',
-      modelId: 'nvidia/NVLM-1.0-72B + NeMo-Retriever-Parse',
-      computeBackend: 'Nebius H100 SXM5 TensorRT-LLM / Local Edge Cache',
+      agentName: 'Stage 1: Nemotron 3.5 Super VL (120B-A12B) & NeMo Retriever Vector Extractor',
+      modelId: 'nvidia/nemotron-3.5-super-vl-120b-a12b + NeMo-Retriever-Parse',
+      computeBackend: 'Nebius H200 / Blackwell TensorRT-LLM / Local Edge Cache',
       latencyMs: 14,
       status: stageStatus,
       summaryOutput: `Extracted ${activeBlueprint.zones.length} spatial zones, ${activeBlueprint.exits.length} panic exits, and scrubbed ${scrubbedMetadata.redactionCount} title-block PII fields (${scrubbedMetadata.redactedEntities.join(', ')}).`,
     },
     {
       stageOrder: 2,
-      agentName: 'Stage 2: Nemotron-70B 2010 ADA Accessibility Geometric Auditor',
-      modelId: 'nvidia/Llama-3.1-Nemotron-70B-Instruct',
+      agentName: 'Stage 2: Nemotron 3.5 Super VL 2010 ADA Accessibility Geometric Auditor',
+      modelId: 'nvidia/nemotron-3.5-super-vl-120b-a12b',
       computeBackend: 'Nebius Token Factory NIM Endpoint',
       latencyMs: 18,
       status: stageStatus,
@@ -346,8 +346,8 @@ export async function runBlueprintSightSupervisor(
     },
     {
       stageOrder: 3,
-      agentName: 'Stage 3: NFPA 101 Life Safety & Manhattan Egress Pathfinder',
-      modelId: 'nvidia/Nemotron-4-340B-Instruct + cuOpt-Rectilinear',
+      agentName: 'Stage 3: Nemotron 3.5 Bolt 74B-A9B NFPA 101 Life Safety & Manhattan Pathfinder',
+      modelId: 'nvidia/nemotron-3.5-bolt-74b-a9b + cuOpt-Rectilinear',
       computeBackend: 'NVIDIA NIM Microservice / Pure-Math Spatial Engine',
       latencyMs: 11,
       status: stageStatus,
@@ -355,9 +355,9 @@ export async function runBlueprintSightSupervisor(
     },
     {
       stageOrder: 4,
-      agentName: 'Stage 4: CAD DXF/IFC Redline Synthesizer & Permit Submittal Packager',
-      modelId: 'nvidia/Llama-3.1-Nemotron-70B-Instruct-JSON',
-      computeBackend: 'Deterministic Schema Enforcer',
+      agentName: 'Stage 4: Nemotron 3.5 Bolt E4B CAD DXF/IFC Redline Synthesizer & Packager',
+      modelId: 'nvidia/nemotron-3.5-bolt-e4b-json',
+      computeBackend: 'Deterministic Schema Enforcer (NVFP4 Edge)',
       latencyMs: 9,
       status: stageStatus,
       summaryOutput:
