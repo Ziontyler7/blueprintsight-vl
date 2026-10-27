@@ -497,6 +497,22 @@ export function App() {
               type="button"
               className="btn"
               onClick={() =>
+                updateOverride({
+                  turningCircleDiameterIn: 51.5,
+                  minDoorClearWidthIn: 29.5,
+                  primaryCorridorWidthIn: 34.0,
+                  maxExitTravelDistanceFt: 268.0,
+                  commonPathOfTravelFt: 88.0,
+                  isNfpa13Sprinklered: false,
+                })
+              }
+            >
+              🧪 Judge Blind-Test: Inject Unseen Non-Compliant CAD (Ø51.5&quot; / 29.5&quot; Door)
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={() =>
                 updateOverride({ isNfpa13Sprinklered: !activeBp.isNfpa13Sprinklered })
               }
             >
@@ -662,7 +678,7 @@ export function App() {
             }}
           >
             <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>
-              Licensed Architect (AIA) / Fire Protection Engineer (PE) Stamp Attestation
+              🛡️ Human-in-the-Loop Licensed Architect (AIA) / PE Stamp Attestation (“A person still approves every critical action”)
             </div>
             <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '2px' }}>
               Binds a tamper-evident FNV-1a cryptographic hash of the current blueprint geometry prior to Municipal Plan-Check export.
